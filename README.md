@@ -1,6 +1,13 @@
-# Blogify (Monorepo)
+Project 2 – Blogify (Full-Stack Blogging Platform)
 
-Minimal full-stack scaffold to start implementing the blogging platform.
+What it is:
+A feature-rich blogging platform where users can write, format, and publish posts, interact with likes/comments/bookmarks, and manage their own or others’ content (admin).
+
+Target users:
+
+Writers/bloggers
+Readers who engage with content
+Admins managing users and posts
 
 ## Structure
 - `server/`: Express API with MongoDB (Mongoose)
@@ -67,7 +74,7 @@ A full-stack blogging platform built with React and Node.js.
 
 ### Backend Setup
 
-1. Navigate to server directory:
+1. Navigate to the server directory:
 ```bash
 cd server
 ```
@@ -97,7 +104,7 @@ npm run dev
 
 ### Frontend Setup
 
-1. Navigate to client directory:
+1. Navigate to the client directory:
 ```bash
 cd client
 ```
@@ -217,7 +224,3 @@ npm test
 3. Make your changes
 4. Add tests
 5. Submit a pull request
-
-## License
-
-MIT License - see LICENSE file for details
