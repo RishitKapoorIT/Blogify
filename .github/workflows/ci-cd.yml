@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
 
 jobs:
   test-backend:
@@ -13,24 +13,14 @@ jobs:
     services:
       mongodb:
         image: mongo:6.0
-        env:
-          MONGO_INITDB_ROOT_USERNAME: admin
-          MONGO_INITDB_ROOT_PASSWORD: password
         ports:
           - 27017:27017
-        options: >-
-          --health-cmd "mongosh --eval 'db.runCommand({ping: 1})'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     env:
       NODE_ENV: test
-      MONGO_URI: mongodb://admin:password@localhost:27017/blogify_test?authSource=admin
-      MONGO_DB_NAME: blogify_test
-      JWT_SECRET: test_jwt_secret_key_for_ci
-      JWT_REFRESH_SECRET: test_jwt_refresh_secret_key_for_ci
-      RUN_DB_TESTS: true
+      MONGO_URI: mongodb://localhost:27017/blogify_test
+      JWT_SECRET: test_jwt_secret
+      JWT_REFRESH_SECRET: test_jwt_refresh_secret
 
     steps:
     - uses: actions/checkout@v3
