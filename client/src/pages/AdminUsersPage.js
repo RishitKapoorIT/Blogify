@@ -1,0 +1,235 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
+import Layout from '../components/layout/Layout';
+import adminAPI from '../api/admin';
+import { AdminRoute } from '../components/auth/ProtectedRoute';
+import toast from 'react-hot-toast';
+
+const roleOptions = [
+  { label: 'User', value: 'user' },
+  { label: 'Moderator', value: 'moderator' },
+  { label: 'Admin', value: 'admin' },
+];
+
+const AdminUsersPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [q, setQ] = useState({ page: 1, limit: 20, search: '', role: '', isActive: '' });
+  const [data, setData] = useState({ users: [], pagination: {} });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = { ...q };
+      if (!params.search) delete params.search;
+      if (!params.role) delete params.role;
+      if (params.isActive === '') delete params.isActive; else params.isActive = params.isActive === 'true';
+      const { data } = await adminAPI.getAllUsers(params);
+      if (data?.success) setData(data.data); else setError('Failed to load users');
+    } catch (e) {
+      setError(e?.response?.data?.error || e.message || 'Failed to load users');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initialize from URL once
+  useEffect(() => {
+    const params = Object.fromEntries(searchParams.entries());
+    setQ({
+      page: Number(params.page) || 1,
+      limit: Number(params.limit) || 20,
+      search: params.search || '',
+      role: params.role || '',
+      isActive: params.isActive ?? ''
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fetch and sync URL when query changes
+  useEffect(() => {
+    fetchUsers();
+    const next = { ...q };
+    const sp = {};
+    Object.keys(next).forEach(k => {
+      const v = next[k];
+      if (v !== '' && v !== undefined && v !== null) sp[k] = String(v);
+    });
+    setSearchParams(sp);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q.page, q.limit, q.search, q.role, q.isActive]);
+
+  const onSearch = (e) => {
+    e.preventDefault();
+    setQ({ ...q, page: 1 });
+    fetchUsers();
+  };
+
+  const updateRole = async (userId, role) => {
+    try {
+      await adminAPI.updateUserRole(userId, role);
+      toast.success('Role updated');
+      fetchUsers();
+    } catch (e) {
+      toast.error(e?.response?.data?.error || e.message || 'Failed to update role');
+    }
+  };
+
+  const toggleStatus = async (userId) => {
+    try {
+      await adminAPI.toggleUserStatus(userId);
+      toast.success('Status updated');
+      fetchUsers();
+    } catch (e) {
+      toast.error(e?.response?.data?.error || e.message || 'Failed to update status');
+    }
+  };
+
+  const rows = useMemo(() => data.users || [], [data.users]);
+
+  return (
+    <AdminRoute>
+      <Layout>
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          {/* Back Button */}
+          <div className="mb-4">
+            <Link 
+              to="/admin" 
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Admin Dashboard
+            </Link>
+          </div>
+
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">User Management</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">Manage user accounts, roles, and permissions</p>
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">{rows.length} of {data.pagination?.totalUsers || 0}</div>
+          </div>
+
+          <form onSubmit={onSearch} className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
+            <input 
+              value={q.search} 
+              onChange={(e) => setQ({ ...q, search: e.target.value })} 
+              placeholder="Search name or email" 
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400" 
+            />
+            <select 
+              value={q.role} 
+              onChange={(e) => setQ({ ...q, role: e.target.value })} 
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            >
+              <option value="">All Roles</option>
+              {roleOptions.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+            </select>
+            <select 
+              value={q.isActive} 
+              onChange={(e) => setQ({ ...q, isActive: e.target.value })} 
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            >
+              <option value="">All Status</option>
+              <option value="true">Active</option>
+              <option value="false">Inactive</option>
+            </select>
+            <div className="flex gap-2">
+              <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Filter</button>
+              <button type="button" className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" onClick={() => setQ({ page: 1, limit: q.limit, search: '', role: '', isActive: '' })}>Reset</button>
+            </div>
+          </form>
+
+          {loading ? (
+            <div>Loading…</div>
+          ) : error ? (
+            <div className="text-red-600">{error}</div>
+          ) : (
+            <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">User</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Email</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Role</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  {rows.map(u => (
+                    <tr key={u._id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <img alt={u.name} src={u.avatarUrl || 'https://via.placeholder.com/40'} className="w-10 h-10 rounded-full" />
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">{u.name}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">{new Date(u.createdAt).toLocaleDateString()}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{u.email}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <select 
+                          value={u.role} 
+                          onChange={(e) => updateRole(u._id, e.target.value)} 
+                          className="text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          {roleOptions.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                        </select>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          u.isActive 
+                            ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' 
+                            : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+                        }`}>
+                          {u.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button 
+                          onClick={() => toggleStatus(u._id)} 
+                          className={`inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${
+                            u.isActive 
+                              ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500' 
+                              : 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
+                          }`}
+                        >
+                          {u.isActive ? 'Deactivate' : 'Activate'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {!!data.pagination?.totalPages && data.pagination.totalPages > 1 && (
+                <div className="p-4 flex justify-center gap-2 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+                  {Array.from({ length: data.pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setQ({ ...q, page })}
+                      className={`px-3 py-1 rounded border transition-colors ${
+                        q.page === page 
+                          ? 'bg-blue-600 text-white border-blue-600' 
+                          : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </Layout>
+    </AdminRoute>
+  );
+};
+
+export default AdminUsersPage;

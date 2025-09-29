@@ -1,0 +1,34 @@
+version: '3.9'
+services:
+  mongo:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - MONGO_URI=mongodb://mongo:27017/blogify
+      - MONGO_DB_NAME=blogify
+      - JWT_SECRET=changeme
+      - JWT_REFRESH_SECRET=changeme2
+      - FRONTEND_URL=http://localhost:3000
+    depends_on:
+      - mongo
+    ports:
+      - "3001:3001"
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    depends_on:
+      - server
+    ports:
+      - "3000:80"
+volumes:
+  mongo_data:
