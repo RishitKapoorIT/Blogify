@@ -1,13 +1,15 @@
-Project 2 – Blogify (Full-Stack Blogging Platform)
+# 📝 Blogify
 
-What it is:
-A feature-rich blogging platform where users can write, format, and publish posts, interact with likes/comments/bookmarks, and manage their own or others’ content (admin).
+![GitHub last commit](https://img.shields.io/github/last-commit/RishitKapoorIT/Blogify)
+![GitHub issues](https://img.shields.io/github/issues/RishitKapoorIT/Blogify)
 
-Target users:
+A modern, feature-rich blogging platform built with the MERN stack (MongoDB, Express, React, Node.js). Create, share, and engage with content in a beautiful, responsive environment.
 
-Writers/bloggers
-Readers who engage with content
-Admins managing users and posts
+## 🎯 Target Users
+
+- ✍️ **Content Creators** - Writers, bloggers, and journalists
+- 📚 **Readers** - Engage with content through comments and likes
+- 🛡️ **Administrators** - Manage content and user access
 
 ## Structure
 - `server/`: Express API with MongoDB (Mongoose)
