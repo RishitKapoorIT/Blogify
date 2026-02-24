@@ -22,7 +22,8 @@ root.render(
         <ErrorBoundary>
           <App />
         </ErrorBoundary>
-        <Toaster 
+      </HelmetProvider>
+      <Toaster 
           position="top-right"
           toastOptions={{
             duration: 4000,
@@ -45,8 +46,7 @@ root.render(
               },
             },
           }}
-        />
-      </HelmetProvider>
+      />
     </Provider>
   </React.StrictMode>
 );

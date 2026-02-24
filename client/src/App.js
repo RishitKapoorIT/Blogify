@@ -5,6 +5,7 @@ import { checkAuth } from './features/auth/authSlice';
 
 // Components
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import { AdminRoute } from './components/auth/ProtectedRoute';
 
 // Pages
 import Home from './pages/Home';
@@ -37,11 +38,11 @@ function App() {
         <Route path="/post/:slug" element={<PostDetailPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profile/:id" element={<ProfilePage />} />
-        
+
         {/* Auth routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        
+
         {/* Protected routes (require authentication) */}
         <Route element={<ProtectedRoute />}>
           <Route path="/create" element={<CreateEditPostPage />} />
@@ -49,12 +50,14 @@ function App() {
           <Route path="/my-posts" element={<MyPostsPage />} />
           <Route path="/my-bookmarks" element={<MyBookmarksPage />} />
           <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/admin" element={<AdminDashboardPage />} />
-          <Route path="/admin/users" element={<AdminUsersPage />} />
-          <Route path="/admin/posts" element={<AdminPostsPage />} />
-          <Route path="/admin/comments" element={<AdminCommentsPage />} />
         </Route>
-        
+
+        {/* Admin-only routes */}
+        <Route path="/admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
+        <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
+        <Route path="/admin/posts" element={<AdminRoute><AdminPostsPage /></AdminRoute>} />
+        <Route path="/admin/comments" element={<AdminRoute><AdminCommentsPage /></AdminRoute>} />
+
         {/* 404 page - fallback route */}
         <Route path="*" element={
           <div className="min-h-screen flex items-center justify-center">
