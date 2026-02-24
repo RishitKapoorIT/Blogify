@@ -94,11 +94,11 @@ const Header = () => {
                 >
                   <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
-                      {user?.firstName?.charAt(0)}
+                      {(user?.firstName || user?.name || 'U').charAt(0)}
                     </span>
                   </div>
                   <span className="text-gray-700 dark:text-gray-300 font-medium">
-                    {user?.firstName}
+                    {user?.firstName || user?.name || 'User'}
                   </span>
                   <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
